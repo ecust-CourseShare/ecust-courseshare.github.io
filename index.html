@@ -339,6 +339,16 @@
             return contents.sort((a, b) => {
                 if (a.type === 'dir' && b.type !== 'dir') return -1;
                 if (a.type !== 'dir' && b.type === 'dir') return 1;
+                
+                // 检查是否包含英文字母
+                const aHasEnglish = /[a-zA-Z]/.test(a.name);
+                const bHasEnglish = /[a-zA-Z]/.test(b.name);
+                
+                // 如果一个是英文，一个不是英文，英文优先
+                if (aHasEnglish && !bHasEnglish) return -1;
+                if (!aHasEnglish && bHasEnglish) return 1;
+                
+                // 如果都是英文或都不是英文，使用原来的排序方式
                 return a.name.localeCompare(b.name, 'zh-Hans-CN', {numeric: true});
             });
         }
