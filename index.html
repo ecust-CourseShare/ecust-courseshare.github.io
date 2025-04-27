@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECUST课程分享仓库目录</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #tree {
+            font-family: monospace;
+            line-height: 1.5;
+            margin-top: 20px;
+        }
+        .dir {
+            color: #0366d6;
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+            padding-left: 15px;
+        }
+        .dir::before {
+            content: '📁 ';
+        }
+        .dir.collapsed::before {
+            content: '📂 ';
+        }
+        .file {
+            color: #24292e;
+            padding-left: 15px;
+        }
+        .file::before {
+            content: '📄 ';
+        }
+        .loading {
+            color: #6a737d;
+            font-style: italic;
+            padding-left: 30px;
+            display: flex;
+            align-items: center;
+        }
+        .error {
+            color: red;
+        }
+        .readme-container {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 5px;
+            border-left: 4px solid #0366d6;
+        }
+        .readme-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #0366d6;
+            display: flex;
+            align-items: center;
+        }
+        .readme-content {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            line-height: 1.5;
+            color: #24292e;
+        }
+        .file-link {
+            cursor: pointer;
+            text-decoration: underline;
+            color: #0366d6;
+        }
+        .download-sources {
+            margin-left: 10px;
+            font-size: 0.8em;
+            color: #586069;
+        }
+        .download-source {
+            margin-left: 8px;
+            color: #586069;
+            text-decoration: none;
+        }
+        .download-source:hover {
+            text-decoration: underline;
+            color: #0366d6;
+        }
+        
+        /* Markdown 渲染样式 */
+        .readme-content h1, .readme-content h2, .readme-content h3 {
+            margin: 1em 0 0.5em 0;
+            color: #0366d6;
+        }
+        .readme-content h1 {
+            font-size: 1.5em;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+        }
+        .readme-content h2 {
+            font-size: 1.3em;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+        }
+        .readme-content h3 {
+            font-size: 1.1em;
+        }
+        .readme-content pre {
+            background-color: #f6f8fa;
+            border-radius: 3px;
+            padding: 16px;
+            overflow: auto;
+            line-height: 1.45;
+        }
+        .readme-content code {
+            background-color: rgba(27,31,35,0.05);
+            border-radius: 3px;
+            padding: 0.2em 0.4em;
+            font-family: monospace;
+        }
+        .readme-content ul, .readme-content ol {
+            padding-left: 2em;
+        }
+        .readme-content img {
+            max-width: 100%;
+            box-sizing: content-box;
+            background-color: #fff;
+        }
+        .readme-content a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        .readme-content a:hover {
+            text-decoration: underline;
+        }
+        .readme-content blockquote {
+            padding: 0 1em;
+            color: #6a737d;
+            border-left: 0.25em solid #dfe2e5;
+            margin: 0 0 1em 0;
+        }
+        
+        /* 加载动画 */
+        .spinner {
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: #0366d6;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 错误样式增强 */
+        .readme-container.error {
+            border-left-color: #d73a49;
+        }
+        .error-message {
+            color: #d73a49;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .error-icon {
+            font-size: 1.2em;
+        }
+        .retry-btn {
+            margin-left: auto;
+            padding: 4px 8px;
+            background-color: #f3f4f6;
+            border: 1px solid #d1d5da;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .retry-btn:hover {
+            background-color: #eaecef;
+        }
+        
+        /* 目录样式 */
+        .toc {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 3px;
+            margin-bottom: 15px;
+            border: 1px solid #e1e4e8;
+        }
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+            margin: 5px 0 0 0;
+        }
+        .toc li {
+            margin: 5px 0;
+        }
+        .toc-link {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        .toc-link:hover {
+            text-decoration: underline;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .readme-container {
+                padding: 10px;
+            }
+            .readme-content pre {
+                padding: 10px;
+                font-size: 0.9em;
+            }
+            .download-sources {
+                display: block;
+                margin-left: 0;
+                margin-top: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>ECUST课程分享仓库目录</h1>
+    <p>点击目录可以展开查看内容，README文件会自动显示</p>
+    
+    <div id="tree"></div>
+    <div id="readme"></div>
+
+    <script>
+        const apiBaseUrl = 'https://cnbapi.bestzyq.cn/ecustcic/ecust-CourseShare/-/git/contents/';
+        // 下载源配置，可以在这里添加更多下载源
+        const downloadSources = [
+            {
+                name: "Github源",
+                url: "https://github.com/tianyilt/ecust-CourseShare/blob/master/{path}"
+            },
+            {
+                name: "Gitcode源",
+                url: "https://gitcode.com/ecust/ecust-CourseShare/blob/master/{path}"
+            },
+            {
+                name: "CNB源",
+                url: "https://cnb.cool/ecustcic/ecust-CourseShare/-/blob/master/{path}"
+            },
+            {
+                name: "Alist源",
+                url: "http://alist.ecustvr.top/ecust-CourseShare/{path}"
+            }
+        ];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDirectory('.', 'tree');
+        });
+
+        async function loadDirectory(path, targetElementId, parentElement = null) {
+            const targetElement = parentElement || document.getElementById(targetElementId);
+            const loadingElement = document.createElement('div');
+            loadingElement.className = 'loading';
+            loadingElement.innerHTML = '<div class="spinner"></div>加载中...';
+            
+            if (parentElement) {
+                targetElement.appendChild(loadingElement);
+            } else {
+                targetElement.innerHTML = '';
+                targetElement.appendChild(loadingElement);
+                document.getElementById('readme').innerHTML = '';
+            }
+
+            try {
+                const contents = await fetchDirectoryContents(path);
+                const sortedContents = sortContents(contents);
+                displayDirectoryContents(sortedContents, targetElement, loadingElement, path);
+                
+                if (path === '.') {
+                    const readme = findReadme(contents);
+                    if (readme) {
+                        displayReadme(readme);
+                    }
+                }
+            } catch (error) {
+                const errorElement = document.createElement('div');
+                errorElement.className = 'error';
+                errorElement.textContent = `加载失败: ${error.message}`;
+                targetElement.replaceChild(errorElement, loadingElement);
+                console.error(error);
+            }
+        }
+
+        function sortContents(contents) {
+            return contents.sort((a, b) => {
+                if (a.type === 'dir' && b.type !== 'dir') return -1;
+                if (a.type !== 'dir' && b.type === 'dir') return 1;
+                return a.name.localeCompare(b.name, 'zh-Hans-CN', {numeric: true});
+            });
+        }
+
+        function findReadme(contents) {
+            return contents.find(item => 
+                item.type === 'file' && /readme\.md$/i.test(item.name)
+            );
+        }
+
+        async function fetchDirectoryContents(path) {
+            const url = `${apiBaseUrl}${path}`;
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`API请求失败: ${response.status} ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.type === 'tree' && data.entries) {
+                return data.entries.map(entry => ({
+                    name: entry.name,
+                    type: entry.type === 'tree' ? 'dir' : 'file',
+                    path: entry.path,
+                    sha: entry.sha,
+                    html_url: `https://cnb.cool/ecustcic/ecust-CourseShare/-/git/raw/master/${entry.path}`
+                }));
+            }
+            
+            throw new Error('无效的API响应格式');
+        }
+
+        function renderMarkdown(content) {
+            // 标题
+            content = content.replace(/^# (.*$)/gm, '<h1 id="$1">$1</h1>');
+            content = content.replace(/^## (.*$)/gm, '<h2 id="$1">$1</h2>');
+            content = content.replace(/^### (.*$)/gm, '<h3 id="$1">$1</h3>');
+            
+            // 链接
+            content = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+            
+            // 代码块
+            content = content.replace(/```([a-z]*)\n([\s\S]*?)\n```/g, '<pre><code class="$1">$2</code></pre>');
+            
+            // 行内代码
+            content = content.replace(/`([^`]+)`/g, '<code>$1</code>');
+            
+            // 图片
+            content = content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">');
+            
+            // 列表
+            content = content.replace(/^\* (.*$)/gm, '<li>$1</li>');
+            content = content.replace(/(<li>.*<\/li>)+/g, '<ul>$&</ul>');
+            
+            // 加粗和斜体
+            content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            content = content.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            
+            // 换行处理
+            content = content.replace(/\n\n/g, '</p><p>');
+            content = content.replace(/\n/g, '<br>');
+            
+            // 生成目录
+            const headings = content.match(/^<h[1-3] id="([^"]+)">/g);
+            let toc = '';
+            if (headings && headings.length > 2) {
+                toc = '<div class="toc"><strong>目录</strong><ul>';
+                headings.forEach(heading => {
+                    const level = heading.match(/^<h([1-3])/)[1];
+                    const title = heading.match(/id="([^"]+)"/)[1];
+                    toc += `<li style="margin-left: ${(level - 1) * 15}px">
+                              <a href="#${title}" class="toc-link">${title}</a>
+                           </li>`;
+                });
+                toc += '</ul></div>';
+            }
+            
+            return toc + '<div class="markdown-body">' + content + '</div>';
+        }
+
+        async function displayReadme(readme) {
+            const readmeContainer = document.getElementById('readme');
+            readmeContainer.innerHTML = `
+                <div class="readme-container">
+                    <div class="readme-title">📝 ${readme.name}</div>
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        加载README内容中...
+                    </div>
+                </div>
+            `;
+            
+            try {
+                const response = await fetch(`https://cnb.ecustvr.top/ecustcic/ecust-CourseShare/-/git/raw/master/${readme.path}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP错误: ${response.status}`);
+                }
+                
+                const content = await response.text();
+                
+                readmeContainer.innerHTML = `
+                    <div class="readme-container">
+                        <div class="readme-title">📝 ${readme.name} 
+                            <a href="${readme.html_url}" target="_blank" style="font-size: 0.8em; margin-left: 10px;">(查看原文)</a>
+                        </div>
+                        <div class="readme-content">${renderMarkdown(content)}</div>
+                    </div>
+                `;
+            } catch (error) {
+                readmeContainer.innerHTML = `
+                    <div class="readme-container error">
+                        <div class="readme-title">📝 ${readme.name}</div>
+                        <div class="error-message">
+                            <span class="error-icon">❌</span>
+                            无法加载README内容: ${error.message}
+                            <button class="retry-btn" onclick="displayReadme(${JSON.stringify(readme).replace(/"/g, '&quot;')})">重试</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function displayDirectoryContents(contents, targetElement, loadingElement, currentPath) {
+            const container = document.createElement('div');
+            targetElement.replaceChild(container, loadingElement);
+
+            contents.forEach(item => {
+                const itemElement = document.createElement('div');
+                
+                if (item.type === 'dir') {
+                    itemElement.className = 'dir collapsed';
+                    itemElement.textContent = item.name;
+                    
+                    itemElement.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        
+                        if (this.classList.contains('expanded')) {
+                            this.classList.remove('expanded');
+                            this.classList.add('collapsed');
+                            const childContainer = this.nextElementSibling;
+                            if (childContainer) {
+                                childContainer.remove();
+                            }
+                        } else {
+                            this.classList.remove('collapsed');
+                            this.classList.add('expanded');
+                            
+                            const childContainer = document.createElement('div');
+                            childContainer.style.marginLeft = '20px';
+                            this.parentNode.insertBefore(childContainer, this.nextSibling);
+                            
+                            loadDirectory(item.path, '', childContainer);
+                            
+                            const readme = findReadme(contents);
+                            if (readme && readme.path.startsWith(item.path)) {
+                                displayReadme(readme);
+                            }
+                        }
+                    });
+                } else {
+                    itemElement.className = 'file';
+                    const link = document.createElement('a');
+                    link.className = 'file-link';
+                    link.textContent = item.name;
+                    link.href = item.html_url;
+                    link.target = '_blank';
+                    itemElement.appendChild(link);
+                    
+                    // 添加下载源链接
+                    if (downloadSources.length > 0) {
+                        const sourcesContainer = document.createElement('span');
+                        sourcesContainer.className = 'download-sources';
+                        sourcesContainer.textContent = '下载源: ';
+                        
+                        downloadSources.forEach((source, index) => {
+                            const sourceLink = document.createElement('a');
+                            sourceLink.className = 'download-source';
+                            sourceLink.textContent = source.name;
+                            sourceLink.href = source.url.replace('{path}', item.path);
+                            sourceLink.target = '_blank';
+                            sourceLink.title = source.url.replace('{path}', item.path);
+                            
+                            if (index > 0) {
+                                sourcesContainer.appendChild(document.createTextNode(' | '));
+                            }
+                            sourcesContainer.appendChild(sourceLink);
+                        });
+                        
+                        itemElement.appendChild(sourcesContainer);
+                    }
+                    
+                    if (/readme\.md$/i.test(item.name)) {
+                        displayReadme(item);
+                    }
+                }
+                
+                container.appendChild(itemElement);
+            });
+        }
+    </script>
+</body>
+</html>
