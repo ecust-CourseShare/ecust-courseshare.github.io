@@ -364,8 +364,54 @@
                 return `<div class="important-block"><strong>⚠️ 重要</strong><br>${importantContent}</div>`;
             });
 
-            // 处理普通引用块（排除特殊标记块）
-            content = content.replace(/^>(?!\s*\[!.*\])(.*$)/gm, '<blockquote>$1</blockquote>');
+            // 处理普通引用块（合并连续的引用）
+            content = content.replace(/^>[\s]?(.*?)(?:\n|$)/gm, (match, p1) => {
+                return `<blockquote>${p1}</blockquote>`;
+            }).replace(/<\/blockquote>\n?<blockquote>/g, '<br>');
+
+            // 处理任务列表
+            content = content.replace(/^[\*\-]\s+\[([ x])\]\s+(.*$)/gm, (match, checked, text) => {
+                const isChecked = checked === 'x' ? 'checked' : '';
+                return `<li class="task-list-item"><input type="checkbox" ${isChecked} disabled class="task-list-item-checkbox">${text}</li>`;
+            });
+            
+            // 处理嵌套列表（先处理缩进）
+            content = content.replace(/^([\*\-])\s+(.*$)/gm, (match, bullet, text, offset, string) => {
+                const indent = string.slice(0, offset).match(/\s*$/)[0].length;
+                const level = Math.floor(indent / 2);
+                return `<li data-level="${level}">${text}</li>`;
+            });
+
+            // 将连续的列表项组织成嵌套结构
+            content = content.replace(/(<li[^>]*data-level="(\d+)">[^<]*<\/li>[\n\r]*)+/g, (match) => {
+                const items = match.match(/<li[^>]*data-level="(\d+)">[^<]*<\/li>/g);
+                let result = '';
+                let currentLevel = 0;
+                let stack = [];
+
+                items.forEach((item) => {
+                    const level = parseInt(item.match(/data-level="(\d+)"/)[1]);
+                    item = item.replace(/\sdata-level="\d+"/, '');
+
+                    if (level > currentLevel) {
+                        result += '<ul>';
+                        stack.push('</ul>');
+                    } else if (level < currentLevel) {
+                        while (currentLevel > level) {
+                            result += stack.pop();
+                            currentLevel--;
+                        }
+                    }
+                    currentLevel = level;
+                    result += item;
+                });
+
+                while (stack.length) {
+                    result += stack.pop();
+                }
+
+                return `<ul>${result}</ul>`;
+            });
 
             // 标题
             content = content.replace(/^# (.*$)/gm, '<h1 id="$1">$1</h1>');
