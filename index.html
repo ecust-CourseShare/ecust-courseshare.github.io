@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ECUST课程分享仓库目录</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.9.0/showdown.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -136,6 +137,50 @@
             color: #6a737d;
             border-left: 0.25em solid #dfe2e5;
             margin: 0 0 1em 0;
+        }
+        .readme-content .center {
+            text-align: center;
+        }
+        .readme-content .note {
+            background-color: #e7f5ff;
+            border-left: 4px solid #0366d6;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        .readme-content .important {
+            background-color: #fff3bf;
+            border-left: 4px solid #f08c00;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        .readme-content .todo-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .readme-content .todo-list li {
+            margin: 0.5em 0;
+            padding-left: 1.5em;
+            position: relative;
+        }
+        .readme-content .todo-list li:before {
+            content: "☐";
+            position: absolute;
+            left: 0;
+        }
+        .readme-content .todo-list li.checked:before {
+            content: "☑";
+        }
+        .readme-content .badge {
+            display: inline-block;
+            padding: 0.25em 0.4em;
+            font-size: 75%;
+            font-weight: 700;
+            line-height: 1;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: baseline;
+            border-radius: 0.25rem;
+            margin: 0 0.2em;
         }
         
         /* 加载动画 */
@@ -328,51 +373,172 @@
         }
 
         function renderMarkdown(content) {
-            // 标题
-            content = content.replace(/^# (.*$)/gm, '<h1 id="$1">$1</h1>');
-            content = content.replace(/^## (.*$)/gm, '<h2 id="$1">$1</h2>');
-            content = content.replace(/^### (.*$)/gm, '<h3 id="$1">$1</h3>');
+            const converter = new showdown.Converter({
+                tables: true,
+                tasklists: true,
+                strikethrough: true,
+                emoji: true,
+                underline: true,
+                metadata: true,
+                openLinksInNewWindow: true,
+                ghCompatibleHeaderId: true,
+                ghMentions: true,
+                ghMentionsLink: 'https://github.com/{u}',
+                encodeEmails: true,
+                backslashEscapesHTMLTags: true,
+                completeHTMLDocument: false,
+                splitAdjacentBlockquotes: true,
+                simpleLineBreaks: true,
+                requireSpaceBeforeHeadingText: true,
+                ghCodeBlocks: true,
+                tablesHeaderId: true,
+                parseImgDimensions: true,
+                excludeTrailingPunctuationFromURLs: true,
+                literalMidWordUnderscores: true,
+                literalMidWordAsterisks: true,
+                smoothLivePreview: true,
+                smartIndentationFix: true,
+                disableForced4SpacesIndentedSublists: true
+            });
+
+            // 添加自定义扩展
+            converter.addExtension({
+                type: 'lang',
+                regex: /<div align="center">([\s\S]*?)<\/div>/g,
+                replace: '<div class="center">$1</div>'
+            }, 'center-div');
+
+            converter.addExtension({
+                type: 'lang',
+                regex: /> \[!NOTE\]\n>([\s\S]*?)(?=\n\n|$)/g,
+                replace: (match, content) => {
+                    // 移除所有 > 符号和后面的空格
+                    content = content.replace(/^>\s*/gm, '');
+                    // 移除开头的空行
+                    content = content.replace(/^\n+/, '');
+                    // 将换行符转换为 <br>
+                    content = content.replace(/\n/g, '<br>');
+                    // 先让 Showdown 处理链接
+                    content = converter.makeHtml(content);
+                    return `<div class="note">
+                        <div class="note-header">
+                            <span class="note-icon">📝</span>
+                            <span class="note-title">注意</span>
+                        </div>
+                        <div class="note-content">${content}</div>
+                    </div>`;
+                }
+            }, 'note-block');
+
+            converter.addExtension({
+                type: 'lang',
+                regex: /> \[!IMPORTANT\]\n>([\s\S]*?)(?=\n\n|$)/g,
+                replace: (match, content) => {
+                    // 移除所有 > 符号和后面的空格
+                    content = content.replace(/^>\s*/gm, '');
+                    // 移除开头的空行
+                    content = content.replace(/^\n+/, '');
+                    // 将换行符转换为 <br>
+                    content = content.replace(/\n/g, '<br>');
+                    // 先让 Showdown 处理链接
+                    content = converter.makeHtml(content);
+                    return `<div class="important">
+                        <div class="important-header">
+                            <span class="important-icon">⚠️</span>
+                            <span class="important-title">重要</span>
+                        </div>
+                        <div class="important-content">${content}</div>
+                    </div>`;
+                }
+            }, 'important-block');
+
+            // 添加样式
+            const style = document.createElement('style');
+            style.textContent = `
+                .note, .important {
+                    margin: 1em 0;
+                    padding: 1em;
+                    border-radius: 4px;
+                }
+                .note {
+                    background-color: #e7f5ff;
+                    border-left: 4px solid #0366d6;
+                }
+                .important {
+                    background-color: #fff3bf;
+                    border-left: 4px solid #f08c00;
+                }
+                .note-header, .important-header {
+                    display: flex;
+                    align-items: center;
+                    margin-bottom: 0.5em;
+                    font-weight: bold;
+                }
+                .note-icon, .important-icon {
+                    margin-right: 0.5em;
+                    font-size: 1.2em;
+                }
+                .note-title {
+                    color: #0366d6;
+                }
+                .important-title {
+                    color: #f08c00;
+                }
+                .note-content, .important-content {
+                    margin: 0;
+                }
+                .note-content p, .important-content p {
+                    margin: 0.5em 0;
+                }
+                .note-content p:first-child, .important-content p:first-child {
+                    margin-top: 0;
+                }
+                .note-content p:last-child, .important-content p:last-child {
+                    margin-bottom: 0;
+                }
+            `;
+            document.head.appendChild(style);
+
+            // 禁用默认的图片处理
+            converter.setOption('parseImgDimensions', false);
             
-            // 链接
-            content = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
-            
-            // 代码块
-            content = content.replace(/```([a-z]*)\n([\s\S]*?)\n```/g, '<pre><code class="$1">$2</code></pre>');
-            
-            // 行内代码
-            content = content.replace(/`([^`]+)`/g, '<code>$1</code>');
-            
-            // 图片
-            content = content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">');
-            
-            // 列表
-            content = content.replace(/^\* (.*$)/gm, '<li>$1</li>');
-            content = content.replace(/(<li>.*<\/li>)+/g, '<ul>$&</ul>');
-            
-            // 加粗和斜体
-            content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            content = content.replace(/\*(.*?)\*/g, '<em>$1</em>');
-            
-            // 换行处理
-            content = content.replace(/\n\n/g, '</p><p>');
-            content = content.replace(/\n/g, '<br>');
-            
+            // 转换 Markdown
+            let html = converter.makeHtml(content);
+
+            // 处理图片
+            html = html.replace(/<img src="([^"]+)" alt="([^"]+)"(?: title="([^"]+)")?>/g, (match, src, alt, title) => {
+                if (src.startsWith('readme.assets/')) {
+                    // 处理相对路径的图片
+                    return `<img src="https://raw.githubusercontent.com/tianyilt/ecust-CourseShare/master/${src}" alt="${alt}"${title ? ` title="${title}"` : ''}>`;
+                }
+                return match;
+            });
+
+            // 处理徽章
+            html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, text, url) => {
+                if (url.includes('shields.io')) {
+                    return `<img src="${url}" alt="${text}" class="badge">`;
+                }
+                return match;
+            });
+
             // 生成目录
-            const headings = content.match(/^<h[1-3] id="([^"]+)">/g);
+            const headings = html.match(/<h[1-3][^>]*>([^<]+)<\/h[1-3]>/g);
             let toc = '';
             if (headings && headings.length > 2) {
                 toc = '<div class="toc"><strong>目录</strong><ul>';
                 headings.forEach(heading => {
-                    const level = heading.match(/^<h([1-3])/)[1];
-                    const title = heading.match(/id="([^"]+)"/)[1];
+                    const level = heading.match(/<h([1-3])/)[1];
+                    const title = heading.match(/>([^<]+)</)[1];
+                    const id = title.toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-');
                     toc += `<li style="margin-left: ${(level - 1) * 15}px">
-                              <a href="#${title}" class="toc-link">${title}</a>
+                              <a href="#${id}" class="toc-link">${title}</a>
                            </li>`;
                 });
                 toc += '</ul></div>';
             }
             
-            return toc + '<div class="markdown-body">' + content + '</div>';
+            return toc + '<div class="markdown-body">' + html + '</div>';
         }
 
         async function displayReadme(readme) {
