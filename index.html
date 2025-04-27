@@ -138,6 +138,31 @@
             margin: 0 0 1em 0;
         }
         
+        /* 特殊标记块样式 */
+        .note-block {
+            background-color: #f6f8fa;
+            border-left: 4px solid #0366d6;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        
+        .important-block {
+            background-color: #fff5f5;
+            border-left: 4px solid #d73a49;
+            padding: 1em;
+            margin: 1em 0;
+        }
+        
+        .readme-content ul {
+            list-style-type: disc;
+            padding-left: 2em;
+            margin: 1em 0;
+        }
+        
+        .readme-content ul li {
+            margin: 0.5em 0;
+        }
+        
         /* 加载动画 */
         .spinner {
             display: inline-block;
@@ -328,6 +353,41 @@
         }
 
         function renderMarkdown(content) {
+            // 处理特殊标记块
+            content = content.replace(/>\s*\[!NOTE\]\s*\n((?:>.*\n?)*)/gm, (match, p1) => {
+                const noteContent = p1.replace(/^>\s?/gm, '');
+                return `<div class="note-block"><strong>📝 注意</strong><br>${noteContent}</div>`;
+            });
+            
+            content = content.replace(/>\s*\[!IMPORTANT\]\s*\n((?:>.*\n?)*)/gm, (match, p1) => {
+                const importantContent = p1.replace(/^>\s?/gm, '');
+                return `<div class="important-block"><strong>⚠️ 重要</strong><br>${importantContent}</div>`;
+            });
+
+            // 处理普通引用块（排除特殊标记块）
+            content = content.replace(/^>(?!\s*\[!.*\])(.*$)/gm, '<blockquote>$1</blockquote>');
+
+            // 标题
+            content = content.replace(/^# (.*$)/gm, '<h1 id="$1">$1</h1>');
+            content = content.replace(/^## (.*$)/gm, '<h2 id="$1">$1</h2>');
+            content = content.replace(/^### (.*$)/gm, '<h3 id="$1">$1</h3>');
+            
+            // 链接
+            content = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+            
+            // 代码块
+            content = content.replace(/```([a-z]*)\n([\s\S]*?)\n```/g, '<pre><code class="$1">$2</code></pre>');
+            
+            // 行内代码
+            content = content.replace(/`([^`]+)`/g, '<code>$1</code>');
+            
+            // 图片
+            content = content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">');
+            
+            // 列表（支持*和-）
+            content = content.replace(/^[\*\-]\s+(.*$)/gm, '<li>$1</li>');
+            content = content.replace(/(<li>.*<\/li>)+/g, '<ul>$&</ul>');
+            
             // 标题
             content = content.replace(/^# (.*$)/gm, '<h1 id="$1">$1</h1>');
             content = content.replace(/^## (.*$)/gm, '<h2 id="$1">$1</h2>');
@@ -348,6 +408,14 @@
             // 列表
             content = content.replace(/^\* (.*$)/gm, '<li>$1</li>');
             content = content.replace(/(<li>.*<\/li>)+/g, '<ul>$&</ul>');
+            
+            // 加粗和斜体
+            content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            content = content.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            
+            // 换行处理
+            content = content.replace(/\n\n/g, '</p><p>');
+            content = content.replace(/\n/g, '<br>');
             
             // 加粗和斜体
             content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
