@@ -404,21 +404,13 @@
             // 添加自定义扩展
             converter.addExtension({
                 type: 'lang',
-                regex: /<div align="center">([\s\S]*?)<\/div>/g,
-                replace: '<div class="center">$1</div>'
-            }, 'center-div');
-
-            converter.addExtension({
-                type: 'lang',
                 regex: /> \[!NOTE\]\n>([\s\S]*?)(?=\n\n|$)/g,
                 replace: (match, content) => {
                     // 移除所有 > 符号和后面的空格
                     content = content.replace(/^>\s*/gm, '');
                     // 移除开头的空行
                     content = content.replace(/^\n+/, '');
-                    // 将换行符转换为 <br>
-                    content = content.replace(/\n/g, '<br>');
-                    // 先让 Showdown 处理链接
+                    // 让 Showdown 处理内容
                     content = converter.makeHtml(content);
                     return `<div class="note">
                         <div class="note-header">
@@ -438,9 +430,7 @@
                     content = content.replace(/^>\s*/gm, '');
                     // 移除开头的空行
                     content = content.replace(/^\n+/, '');
-                    // 将换行符转换为 <br>
-                    content = content.replace(/\n/g, '<br>');
-                    // 先让 Showdown 处理链接
+                    // 让 Showdown 处理内容
                     content = converter.makeHtml(content);
                     return `<div class="important">
                         <div class="important-header">
@@ -499,9 +489,6 @@
             `;
             document.head.appendChild(style);
 
-            // 禁用默认的图片处理
-            converter.setOption('parseImgDimensions', false);
-            
             // 转换 Markdown
             let html = converter.makeHtml(content);
 
@@ -509,15 +496,7 @@
             html = html.replace(/<img src="([^"]+)" alt="([^"]+)"(?: title="([^"]+)")?>/g, (match, src, alt, title) => {
                 if (src.startsWith('readme.assets/')) {
                     // 处理相对路径的图片
-                    return `<img src="https://raw.githubusercontent.com/tianyilt/ecust-CourseShare/master/${src}" alt="${alt}"${title ? ` title="${title}"` : ''}>`;
-                }
-                return match;
-            });
-
-            // 处理徽章
-            html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, text, url) => {
-                if (url.includes('shields.io')) {
-                    return `<img src="${url}" alt="${text}" class="badge">`;
+                    return `<img src="/${src}" alt="${alt}"${title ? ` title="${title}"` : ''}>`;
                 }
                 return match;
             });
