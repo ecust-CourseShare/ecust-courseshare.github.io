@@ -138,31 +138,6 @@
             margin: 0 0 1em 0;
         }
         
-        /* 特殊标记块样式 */
-        .note-block {
-            background-color: #f6f8fa;
-            border-left: 4px solid #0366d6;
-            padding: 1em;
-            margin: 1em 0;
-        }
-        
-        .important-block {
-            background-color: #fff5f5;
-            border-left: 4px solid #d73a49;
-            padding: 1em;
-            margin: 1em 0;
-        }
-        
-        .readme-content ul {
-            list-style-type: disc;
-            padding-left: 2em;
-            margin: 1em 0;
-        }
-        
-        .readme-content ul li {
-            margin: 0.5em 0;
-        }
-        
         /* 加载动画 */
         .spinner {
             display: inline-block;
@@ -353,87 +328,6 @@
         }
 
         function renderMarkdown(content) {
-            // 处理特殊标记块
-            content = content.replace(/>\s*\[!NOTE\]\s*\n((?:>.*\n?)*)/gm, (match, p1) => {
-                const noteContent = p1.replace(/^>\s?/gm, '');
-                return `<div class="note-block"><strong>📝 注意</strong><br>${noteContent}</div>`;
-            });
-            
-            content = content.replace(/>\s*\[!IMPORTANT\]\s*\n((?:>.*\n?)*)/gm, (match, p1) => {
-                const importantContent = p1.replace(/^>\s?/gm, '');
-                return `<div class="important-block"><strong>⚠️ 重要</strong><br>${importantContent}</div>`;
-            });
-
-            // 处理普通引用块（合并连续的引用）
-            content = content.replace(/^>[\s]?(.*?)(?:\n|$)/gm, (match, p1) => {
-                return `<blockquote>${p1}</blockquote>`;
-            }).replace(/<\/blockquote>\n?<blockquote>/g, '<br>');
-
-            // 处理任务列表
-            content = content.replace(/^[\*\-]\s+\[([ x])\]\s+(.*$)/gm, (match, checked, text) => {
-                const isChecked = checked === 'x' ? 'checked' : '';
-                return `<li class="task-list-item"><input type="checkbox" ${isChecked} disabled class="task-list-item-checkbox">${text}</li>`;
-            });
-            
-            // 处理嵌套列表（先处理缩进）
-            content = content.replace(/^([\*\-])\s+(.*$)/gm, (match, bullet, text, offset, string) => {
-                const indent = string.slice(0, offset).match(/\s*$/)[0].length;
-                const level = Math.floor(indent / 2);
-                return `<li data-level="${level}">${text}</li>`;
-            });
-
-            // 将连续的列表项组织成嵌套结构
-            content = content.replace(/(<li[^>]*data-level="(\d+)">[^<]*<\/li>[\n\r]*)+/g, (match) => {
-                const items = match.match(/<li[^>]*data-level="(\d+)">[^<]*<\/li>/g);
-                let result = '';
-                let currentLevel = 0;
-                let stack = [];
-
-                items.forEach((item) => {
-                    const level = parseInt(item.match(/data-level="(\d+)"/)[1]);
-                    item = item.replace(/\sdata-level="\d+"/, '');
-
-                    if (level > currentLevel) {
-                        result += '<ul>';
-                        stack.push('</ul>');
-                    } else if (level < currentLevel) {
-                        while (currentLevel > level) {
-                            result += stack.pop();
-                            currentLevel--;
-                        }
-                    }
-                    currentLevel = level;
-                    result += item;
-                });
-
-                while (stack.length) {
-                    result += stack.pop();
-                }
-
-                return `<ul>${result}</ul>`;
-            });
-
-            // 标题
-            content = content.replace(/^# (.*$)/gm, '<h1 id="$1">$1</h1>');
-            content = content.replace(/^## (.*$)/gm, '<h2 id="$1">$1</h2>');
-            content = content.replace(/^### (.*$)/gm, '<h3 id="$1">$1</h3>');
-            
-            // 链接
-            content = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
-            
-            // 代码块
-            content = content.replace(/```([a-z]*)\n([\s\S]*?)\n```/g, '<pre><code class="$1">$2</code></pre>');
-            
-            // 行内代码
-            content = content.replace(/`([^`]+)`/g, '<code>$1</code>');
-            
-            // 图片
-            content = content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">');
-            
-            // 列表（支持*和-）
-            content = content.replace(/^[\*\-]\s+(.*$)/gm, '<li>$1</li>');
-            content = content.replace(/(<li>.*<\/li>)+/g, '<ul>$&</ul>');
-            
             // 标题
             content = content.replace(/^# (.*$)/gm, '<h1 id="$1">$1</h1>');
             content = content.replace(/^## (.*$)/gm, '<h2 id="$1">$1</h2>');
@@ -454,14 +348,6 @@
             // 列表
             content = content.replace(/^\* (.*$)/gm, '<li>$1</li>');
             content = content.replace(/(<li>.*<\/li>)+/g, '<ul>$&</ul>');
-            
-            // 加粗和斜体
-            content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            content = content.replace(/\*(.*?)\*/g, '<em>$1</em>');
-            
-            // 换行处理
-            content = content.replace(/\n\n/g, '</p><p>');
-            content = content.replace(/\n/g, '<br>');
             
             // 加粗和斜体
             content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
