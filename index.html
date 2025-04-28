@@ -642,7 +642,8 @@
                         itemElement.appendChild(sourcesContainer);
                     }
                     
-                    if (/readme\.md$/i.test(item.name)) {
+                    // 只有在非根目录时才显示README
+                    if (/readme\.md$/i.test(item.name) && currentPath !== '.') {
                         displayReadme(item);
                     }
                 }
