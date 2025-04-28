@@ -22,6 +22,7 @@
 1. **CNB API版本** (index.html)
    - 使用CNB的API获取仓库内容
    - 通过CDN代理解决CORS限制 (cnbapi.bestzyq.cn)
+   - 使用Alist的API实现搜索功能（alist.ecustvr.top）
    - 更稳定的国内访问体验
 
 2. **GitHub API版本** (github.html)
