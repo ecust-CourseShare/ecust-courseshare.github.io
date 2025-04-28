@@ -12,6 +12,17 @@
             margin: 0 auto;
             padding: 20px;
         }
+        .api-switch {
+            margin-top: 10px;
+            color: #586069;
+        }
+        .api-link {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        .api-link:hover {
+            text-decoration: underline;
+        }
         #tree {
             font-family: monospace;
             line-height: 1.5;
@@ -275,6 +286,12 @@
 <body>
     <h1>ECUST课程分享仓库目录</h1>
     <p>点击目录可以展开查看内容，README文件会自动显示</p>
+    <p class="api-switch">
+        当前使用CNB API | 
+        <a href="github.html" class="api-link">
+            切换到 GitHub API版本 🔄
+        </a>
+    </p>
     
     <div id="tree"></div>
     <div id="readme"></div>
