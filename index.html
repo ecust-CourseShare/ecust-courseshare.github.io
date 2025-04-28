@@ -12,6 +12,136 @@
             margin: 0 auto;
             padding: 20px;
         }
+        
+        /* 搜索相关样式 */
+        .search-container {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #e1e4e8;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #e1e4e8;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .search-button {
+            padding: 8px 16px;
+            background-color: #0366d6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .search-button:hover {
+            background-color: #0256b9;
+        }
+        
+        .search-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .search-results {
+            margin-top: 20px;
+        }
+        
+        .search-result-item {
+            padding: 10px;
+            border: 1px solid #e1e4e8;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            background-color: white;
+        }
+        
+        .search-result-path {
+            color: #586069;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+        
+        .search-result-name {
+            color: #0366d6;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .search-result-size {
+            color: #586069;
+            font-size: 12px;
+        }
+        
+        .search-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #586069;
+            gap: 10px;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .download-source {
+            color: #0366d6;
+            text-decoration: none;
+            font-size: 12px;
+            margin-right: 8px;
+        }
+
+        .download-source:hover {
+            text-decoration: underline;
+        }
+
+        .search-result-item {
+            transition: all 0.2s ease;
+        }
+
+        .search-result-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transform: translateY(-1px);
+        }
+        
+        .search-error {
+            color: #d73a49;
+            padding: 10px;
+            background-color: #fff5f5;
+            border: 1px solid #ffc9c9;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        
+        .no-results {
+            text-align: center;
+            color: #586069;
+            padding: 20px;
+        }
         .api-switch {
             margin-top: 10px;
             color: #586069;
@@ -285,6 +415,16 @@
 </head>
 <body>
     <h1>ECUST课程分享仓库目录</h1>
+    
+    <!-- 搜索组件 -->
+    <div class="search-container">
+        <div class="search-box">
+            <input type="text" class="search-input" placeholder="搜索课程资源..." id="searchInput">
+            <button class="search-button" id="searchButton">搜索</button>
+        </div>
+        <div id="searchResults" class="search-results"></div>
+    </div>
+    
     <p>点击目录可以展开查看内容，README文件会自动显示</p>
     <p class="api-switch">
         当前使用CNB API | 
@@ -298,6 +438,7 @@
 
     <script>
         const apiBaseUrl = 'https://cnbapi.bestzyq.cn/ecustcic/ecust-CourseShare/-/git/contents/';
+
         // 下载源配置，可以在这里添加更多下载源
         const downloadSources = [
             {
@@ -317,6 +458,119 @@
                 url: "http://alist.ecustvr.top/ecust-CourseShare/{path}"
             }
         ];
+
+        // 搜索功能实现
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const searchButton = document.getElementById('searchButton');
+            const searchResults = document.getElementById('searchResults');
+
+            // 执行搜索
+            async function performSearch(query) {
+                if (!query.trim()) {
+                    searchResults.innerHTML = '';
+                    return;
+                }
+
+                searchButton.disabled = true;
+                searchResults.innerHTML = '<div class="search-loading"><div class="spinner"></div>搜索中...</div>';
+
+                try {
+                    // 使用Alist API进行搜索
+                    const response = await fetch('http://alist.ecustvr.top/api/fs/search', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            parent: '/',
+                            keywords: query,
+                            scope: 0,
+                            page: 1,
+                            per_page: 50,
+                            password: ''
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('搜索请求失败');
+                    }
+
+                    const data = await response.json();
+                    
+                    if (!data.data || !data.data.content || data.data.content.length === 0) {
+                        searchResults.innerHTML = '<div class="no-results">未找到相关资源</div>';
+                        return;
+                    }
+
+                    // 生成搜索结果HTML
+                    const resultsHtml = data.data.content.map(result => {
+                        const isDir = result.is_dir;
+                        const parentPath = result.parent.replace(/^\/Public\/ecust-CourseShare\//, '');
+                        const path = parentPath + '/' + result.name;
+                        const size = isDir ? '文件夹' : formatFileSize(result.size);
+                        const icon = isDir ? '📁' : '📄';
+
+                        // 生成下载源链接
+                        const downloadLinks = downloadSources.map((source, index) => {
+                            const sourceUrl = source.url.replace('{path}', path);
+                            return `<a href="${sourceUrl}" target="_blank" class="download-source">${source.name}</a>`;
+                        }).join(' | ');
+
+                        return `
+                            <div class="search-result-item">
+                                <div class="search-result-path">${path}</div>
+                                <div class="search-result-name">
+                                    ${icon} <a href="https://cnb.cool/ecustcic/ecust-CourseShare/-/git/raw/master/${path}" 
+                                       target="_blank">${result.name}</a>
+                                </div>
+                                <div class="search-result-size">
+                                    ${size}
+                                    <span class="download-sources">
+                                        下载源: ${downloadLinks}
+                                    </span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    searchResults.innerHTML = resultsHtml;
+
+                } catch (error) {
+                    searchResults.innerHTML = `
+                        <div class="search-error">
+                            搜索出错：${error.message}
+                        </div>
+                    `;
+                    console.error('搜索错误:', error);
+                } finally {
+                    searchButton.disabled = false;
+                }
+            }
+
+            // 文件大小格式化函数
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 B';
+                const k = 1024;
+                const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            // 搜索按钮点击事件
+            searchButton.addEventListener('click', () => {
+                const query = searchInput.value;
+                performSearch(query);
+            });
+
+            // 回车键触发搜索
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const query = searchInput.value;
+                    performSearch(query);
+                }
+            });
+        });
 
         document.addEventListener('DOMContentLoaded', () => {
             loadDirectory('.', 'tree');
