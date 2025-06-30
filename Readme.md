@@ -87,13 +87,23 @@
 
 ## 声明
 
-本项目 CDN 加速及安全防护由 Tencent EdgeOne 赞助
 
-![EdgeOne](https://edgeone.ai/media/34fe3a45-492d-4ea4-ae5d-ea1087ca7b4b.png)
+<div align="center">
+
+### 本项目 CDN 加速及安全防护由 Tencent EdgeOne 赞助
 
 EdgeOne 官网链接：[亚洲最佳CDN、边缘和安全解决方案 - Tencent EdgeOne](https://edgeone.ai/zh?from=github)
 
+<a href="https://edgeone.ai/zh?from=github" target="_blank">
+  <img src="https://edgeone.ai/media/34fe3a45-492d-4ea4-ae5d-ea1087ca7b4b.png" alt="EdgeOne" width="300" />
+</a>
 
-感谢南方科技大学开源镜像站提供 CDNJS Mirrors 镜像服务。
+---
 
-![SUSTech Open Source Mirrors](https://mirrors.sustech.edu.cn/mirrors-logo.svg)
+### 感谢南方科技大学开源镜像站提供 CDNJS Mirrors 镜像服务
+
+<a href="https://mirrors.sustech.edu.cn/" target="_blank">
+  <img src="https://mirrors.sustech.edu.cn/mirrors-logo.svg" alt="SUSTech Open Source Mirrors" width="50" />
+</a>
+
+</div>
