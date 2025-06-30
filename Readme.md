@@ -21,7 +21,7 @@
 ### 两个版本
 1. **CNB API版本** (index.html)
    - 使用CNB的API获取仓库内容
-   - 通过CDN代理解决CORS限制 (cnbapi.bestzyq.cn)
+   - 通过CDN代理解决CORS限制 (cnbapi.ecustvr.top)
    - 使用Alist的API实现搜索功能（alist.ecustvr.top）
    - 更稳定的国内访问体验
 
@@ -34,7 +34,9 @@
 
 ### 访问网站
 1. 主域名: [https://ecust-courseshare.github.io/](https://ecust-courseshare.github.io/)
-2. 备用域名: [https://ecust-courseshare.ecustvr.top/](https://ecust-courseshare.ecustvr.top/) (解决移动网络访问问题)
+2. 备用域名（解决中国大陆访问问题）:
+   - Edgeone 镜像（回源Github Pages | 支持ipv6）: [https://ecust-courseshare.bestzyq.cn/](https://ecust-courseshare.bestzyq.cn/)
+   - Edgeone Pages: [https://ecust-courseshare.ecustvr.top/](https://ecust-courseshare.ecustvr.top/)
 
 ### 浏览文件
 1. 点击文件夹图标 📁 可以展开/折叠目录
@@ -50,13 +52,14 @@
 ## 已知问题
 
 ### CNB API版本:
-- 需要通过CDN解决CORS限制
-- README.md显示依赖cnb.ecustvr.top
-- 需要定期更新证书
+得益于腾讯云Edgeone的CDN赞助，已解决绝大部分问题
+- ~~需要通过CDN解决CORS限制~~
+- ~~README.md显示依赖cnb.ecustvr.top~~
+- ~~需要定期更新证书~~
 
 ### GitHub API版本:
 - 可能存在API访问限制
-- 国内网络环境下可能连接不稳定
+- 中国大陆网络环境下可能连接不稳定
 
 ## 项目优势
 
@@ -81,3 +84,16 @@
 ## 开源协议
 
 本项目采用MIT协议开源。
+
+## 声明
+
+本项目 CDN 加速及安全防护由 Tencent EdgeOne 赞助
+
+![EdgeOne](https://edgeone.ai/media/34fe3a45-492d-4ea4-ae5d-ea1087ca7b4b.png)
+
+EdgeOne 官网链接：[亚洲最佳CDN、边缘和安全解决方案 - Tencent EdgeOne](https://edgeone.ai/zh?from=github)
+
+
+感谢南方科技大学开源镜像站提供 CDNJS Mirrors 镜像服务。
+
+![SUSTech Open Source Mirrors](https://mirrors.sustech.edu.cn/mirrors-logo.svg)
