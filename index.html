@@ -531,12 +531,22 @@
                             return `<a href="${sourceUrl}" target="_blank" class="download-source">${source.name}</a>`;
                         }).join(' | ');
 
+                        // 根据是否为文件夹决定是否添加超链接
+                        let nameContent;
+                        if (isDir) {
+                            // 文件夹不添加超链接
+                            nameContent = `<span>${result.name}</span>`;
+                        } else {
+                            // 文件添加超链接
+                            nameContent = `<a href="https://cnb.cool/ecustcic/ecust-CourseShare/-/git/raw/master/${path}" 
+                            target="_blank">${result.name}</a>`;
+                        }
+
                         return `
                             <div class="search-result-item">
                                 <div class="search-result-path">${path}</div>
                                 <div class="search-result-name">
-                                    ${icon} <a href="https://cnb.cool/ecustcic/ecust-CourseShare/-/git/raw/master/${path}" 
-                                       target="_blank">${result.name}</a>
+                                    ${icon} ${nameContent}
                                 </div>
                                 <div class="search-result-size">
                                     ${size}
