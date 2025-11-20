@@ -468,8 +468,8 @@
                 url: "https://cnb.cool/ecustcic/ecust-CourseShare/-/blob/master/{path}"
             },
             {
-                name: "Alist源",
-                url: "http://alist.ecustvr.top/ecust-CourseShare/{path}"
+                name: "Openlist源",
+                url: "https://ss.bestzyq.cn/ecust-CourseShare/{path}"
             }
         ];
 
@@ -490,14 +490,14 @@
                 searchResults.innerHTML = '<div class="search-loading"><div class="spinner"></div>搜索中...</div>';
 
                 try {
-                    // 使用Alist API进行搜索
-                    const response = await fetch('https://alist.ecustvr.top/api/fs/search', {
+                    // 使用Openlist API进行搜索
+                    const response = await fetch('https://ss.bestzyq.cn/api/fs/search', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
-                            parent: '/',
+                            parent: '/ecust-CourseShare',
                             keywords: query,
                             scope: 0,
                             page: 1,

@@ -7,7 +7,7 @@
 - 📚 提供完整的课程资源目录浏览
 - 🔍 支持目录树形结构展示
 - 📝 自动渲染并展示README文件内容
-- 🔄 支持多个下载源切换(GitHub/Gitcode/CNB/Alist)
+- 🔄 支持多个下载源切换(GitHub/Gitcode/CNB/OpenList)
 - 🌐 基于GitHub Pages的免费托管
 - 🚀 无需维护和更新，自动调用API获取最新内容
 
@@ -22,7 +22,7 @@
 1. **CNB API版本** (index.html)
    - 使用CNB的API获取仓库内容
    - 通过CDN代理解决CORS限制 (cnbapi.ecustvr.top)
-   - 使用Alist的API实现搜索功能（alist.ecustvr.top）
+   - 使用OpenList的API实现搜索功能（OpenList.ecustvr.top）
    - 更稳定的国内访问体验
 
 2. **GitHub API版本** (github.html)
@@ -47,7 +47,7 @@
 - GitHub源：直接从GitHub仓库下载
 - Gitcode源：使用Gitcode镜像下载
 - CNB源：使用CNB平台下载
-- Alist源：使用Alist服务器下载
+- OpenList源：使用OpenList服务器下载
 
 ## 已知问题
 
