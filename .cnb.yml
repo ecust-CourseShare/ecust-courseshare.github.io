@@ -1,0 +1,23 @@
+master:
+  push:
+    - name: sync
+      runner:
+        cpus: 1
+      imports: https://cnb.cool/ecustcic/key/-/blob/main/env.yml
+      stages:
+        - name: sync to github
+          image: tencentcom/git-sync
+          settings:
+            target_url: https://github.com/ecust-CourseShare/ecust-courseshare.github.io.git
+            auth_type: https
+            username: ${GITHUB_USERNAME}
+            password: ${GITHUB_ACCESS_TOKEN}
+    - name: edgeone
+      runner:
+        cpus: 1
+      imports: https://cnb.cool/ecustcic/key/-/blob/main/env.yml
+      stages:
+        # 将构建输出部署到 EdgeOne Pages
+        - name: Deploy to EdgeOne Pages
+          image: tencentcom/deploy-eopages:latest
+          script: edgeone pages deploy ./ -n ecust-courseshare -t $EDGEONE_API_TOKEN
