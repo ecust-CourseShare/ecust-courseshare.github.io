@@ -15,7 +15,7 @@ $:
     - name: edgeone
       runner:
         cpus: 1
-      imports: https://cnb.cool/ecustcic/key/-/blob/main/env.yml
+      imports: https://cnb.cool/bestzyq/key/-/blob/main/env.yml
       stages:
         # 将构建输出部署到 EdgeOne Pages
         - name: Deploy to EdgeOne Pages
